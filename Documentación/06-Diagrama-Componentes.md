@@ -9,49 +9,9 @@ desplegado en Railway.
 
 ## 6.2 Diagrama de Componentes (Despliegue Railway)
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-flowchart TB
-    subgraph CLIENT["«component» Cliente Web (SPA)"]
-        UI["UI Components<br/>Dashboard / Wizard / DiagramView"]
-        Router["React Router"]
-        ApiSvc["Service Layer<br/>api.js (Axios)"]
-        Export["Export Engine<br/>jsPDF + html2canvas"]
-        UI --> Router
-        UI --> ApiSvc
-        UI --> Export
-    end
+> **Diagrama de Componentes — Despliegue Railway** — [descargar PDF](Diagramas/06-01-Componentes-Railway.pdf)
 
-    subgraph SERVER["«component» Servidor Web (Express)"]
-        Static["Static Files Handler<br/>(/client/dist)"]
-        ApiRouter["API Router<br/>/api/diagrams"]
-        HealthRouter["Health Endpoint<br/>/api/health"]
-        Controllers["Controllers<br/>diagramController"]
-        DBLayer["DB Connection Pool<br/>(node-postgres)"]
-
-        Static -.serves.-> ApiRouter
-        ApiRouter --> Controllers
-        Controllers --> DBLayer
-    end
-
-    subgraph DB["«component» Base de Datos"]
-        Tables["Tablas<br/>diagrams · causes · controls<br/>consequences · mitigations<br/>risk_evaluations · escalations"]
-    end
-
-    subgraph PLAT["«infrastructure» Railway"]
-        Build["Nixpacks Build<br/>(railway.json + nixpacks.toml)"]
-        HealthCheck["Health Probe"]
-        Logs["Logs / Metrics"]
-    end
-
-    Browser(["Navegador<br/>(Chrome / Firefox / Edge)"])
-    Browser ==>|HTTPS| Static
-    Browser ==>|HTTPS / JSON| ApiRouter
-    DBLayer ==>|TCP / SSL| Tables
-    Build ==>|despliega| SERVER
-    HealthCheck ==>|GET /api/health| HealthRouter
-    SERVER -.->|stdout/stderr| Logs
-```
+![Diagrama de Componentes — Despliegue Railway](Diagramas/06-01-Componentes-Railway.png)
 
 ## 6.3 Catálogo de Componentes
 
@@ -81,20 +41,9 @@ flowchart TB
 
 ## 6.5 Diagrama de Componentes — Vista Detallada del Backend
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-flowchart LR
-    Index["index.js<br/>(Bootstrap)"]
-    Cors["cors middleware"]
-    Json["express.json()"]
-    Routes["routes/diagrams.js"]
-    CtrlDiagrams["controllers/<br/>diagramController.js"]
-    DbConn["db/connection.js<br/>(Pool)"]
-    EnvFile[(".env / DATABASE_URL")]
+> **Diagrama de Componentes — Detalle Backend** — [descargar PDF](Diagramas/06-02-Componentes-Backend.pdf)
 
-    Index --> Cors --> Json --> Routes --> CtrlDiagrams --> DbConn
-    DbConn -.lee.-> EnvFile
-```
+![Diagrama de Componentes — Detalle Backend](Diagramas/06-02-Componentes-Backend.png)
 
 ## 6.6 Empaquetado y Despliegue
 

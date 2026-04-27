@@ -26,9 +26,23 @@ renderiza nativamente en blanco y negro mediante el tema *neutral*.
 | 14 | [Manual Técnico](14-Manual-Tecnico.md) | Estructura, endpoints e instalación. |
 | 15 | [Referencias](15-Referencias.md) | Bibliografía y enlaces oficiales. |
 
+## Diagramas
+
+Todos los diagramas UML se entregan en formato **PDF** (blanco y negro,
+para impresión y entrega formal) y **PNG** (vista previa inline). Los
+archivos se encuentran en la carpeta [`Diagramas/`](Diagramas/) y su
+índice está en [`Diagramas/README.md`](Diagramas/README.md).
+
+Los diagramas se regeneran ejecutando:
+
+```bash
+npm install --no-save @mermaid-js/mermaid-cli
+npm run docs:diagrams
+```
+
 ## Convenciones
 
-- **Notación**: UML 2.5.1 a través de diagramas Mermaid.
+- **Notación**: UML 2.5.1.
 - **Idioma**: Español.
-- **Formato**: Documento monocromo (tema *neutral* de Mermaid). Los diagramas se imprimen correctamente en blanco y negro.
+- **Formato gráfico**: Monocromo (blanco y negro), tipografía serif.
 - **Versionado**: 1.0.0 — abril 2026.

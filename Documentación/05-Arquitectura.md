@@ -7,30 +7,9 @@ con separación estricta entre la presentación, la lógica de negocio y la
 persistencia. El despliegue se realiza como un único servicio web que sirve
 tanto los recursos estáticos del cliente como la API REST.
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-flowchart TB
-    subgraph Cap1["CAPA DE PRESENTACIÓN"]
-        FE["Cliente Web<br/>React + Vite<br/>(SPA)"]
-    end
+> **Arquitectura en Tres Capas** — [descargar PDF](Diagramas/05-01-Arquitectura-Tres-Capas.pdf)
 
-    subgraph Cap2["CAPA DE LÓGICA"]
-        BE["API REST<br/>Node.js + Express"]
-        CTRL["Controladores"]
-        ROUTE["Enrutador"]
-    end
-
-    subgraph Cap3["CAPA DE PERSISTENCIA"]
-        DB[("PostgreSQL")]
-    end
-
-    Usuario(["Analista"])
-
-    Usuario -->|HTTPS| FE
-    FE -->|JSON / REST| BE
-    BE --> ROUTE --> CTRL
-    CTRL -->|SQL| DB
-```
+![Arquitectura en Tres Capas](Diagramas/05-01-Arquitectura-Tres-Capas.png)
 
 ## 5.2 Patrón Arquitectónico
 
@@ -55,48 +34,17 @@ flowchart TB
 
 ## 5.4 Vista Lógica
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-flowchart LR
-    subgraph FRONT["Frontend"]
-        Dashboard["Dashboard"]
-        Wizard["Wizard 5 pasos"]
-        Diagram["Visualizador<br/>Bowtie"]
-        Eval["Evaluación<br/>Riesgo 5x5"]
-        Api["Servicio API<br/>(Axios)"]
-    end
+> **Vista Lógica del Sistema** — [descargar PDF](Diagramas/05-02-Vista-Logica.pdf)
 
-    subgraph BACK["Backend"]
-        Routes["Routes"]
-        Controllers["Controllers"]
-        DBPool["DB Pool<br/>(pg)"]
-    end
-
-    Dashboard --> Api
-    Wizard --> Api
-    Diagram --> Api
-    Eval --> Api
-    Api --> Routes
-    Routes --> Controllers
-    Controllers --> DBPool
-    DBPool --> PGSQL[("PostgreSQL")]
-```
+![Vista Lógica del Sistema](Diagramas/05-02-Vista-Logica.png)
 
 ## 5.5 Vista de Despliegue (resumen)
 
 El detalle se desarrolla en el documento [11-Diagrama-Despliegue.md](11-Diagrama-Despliegue.md).
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-flowchart LR
-    User(["Usuario"])
-    subgraph RW["Railway"]
-        WebSvc["Servicio Web<br/>Node.js"]
-        Pg[("PostgreSQL<br/>Plugin")]
-    end
-    User -->|HTTPS| WebSvc
-    WebSvc -->|TCP/SSL| Pg
-```
+> **Vista de Despliegue (Resumen)** — [descargar PDF](Diagramas/05-03-Despliegue-Resumen.pdf)
+
+![Vista de Despliegue (Resumen)](Diagramas/05-03-Despliegue-Resumen.png)
 
 ## 5.6 Atributos de Calidad
 

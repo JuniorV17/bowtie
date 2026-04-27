@@ -2,38 +2,9 @@
 
 ## 11.1 Topología de Despliegue en Railway
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-flowchart TB
-    User(["Usuario<br/>Navegador"])
+> **Topología de Despliegue en Railway** — [descargar PDF](Diagramas/11-01-Topologia-Railway.pdf)
 
-    subgraph Internet["Internet (HTTPS)"]
-        DNS["DNS Railway<br/>*.up.railway.app"]
-    end
-
-    subgraph Railway["Plataforma Railway"]
-        direction TB
-        subgraph WebNode["«deviceNode» Servicio Web"]
-            Bundle["«artifact» Contenedor Node.js 20"]
-            Bundle --- ServerJs["«executable» server/src/index.js"]
-            Bundle --- ClientDist["«artifact» client/dist (estáticos)"]
-        end
-        subgraph DBNode["«deviceNode» Plugin PostgreSQL"]
-            DBInst[("«database» bowtie")]
-            DBVars["«configFile» credenciales (DATABASE_URL)"]
-        end
-        subgraph CICD["«process» Pipeline Railway"]
-            Repo["GitHub Webhook"]
-            Nix["Nixpacks Build"]
-        end
-    end
-
-    User -->|HTTPS 443| DNS
-    DNS -->|HTTPS 443| WebNode
-    WebNode -->|TCP 5432 + SSL| DBInst
-    Repo -->|trigger| Nix
-    Nix -->|despliega| WebNode
-```
+![Topología de Despliegue en Railway](Diagramas/11-01-Topologia-Railway.png)
 
 ## 11.2 Especificación de Nodos
 

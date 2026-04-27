@@ -2,86 +2,9 @@
 
 ## 8.1 Diagrama Entidad–Relación
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-erDiagram
-    DIAGRAMS ||--o{ CAUSES : contiene
-    DIAGRAMS ||--o{ CONSEQUENCES : contiene
-    DIAGRAMS ||--o{ RISK_EVALUATIONS : evalua
-    CAUSES ||--o{ PREVENTIVE_CONTROLS : protege
-    CONSEQUENCES ||--o{ MITIGATION_CONTROLS : mitiga
-    PREVENTIVE_CONTROLS ||--o{ CONTROL_ESCALATIONS : debilita
-    MITIGATION_CONTROLS ||--o{ MITIGATION_ESCALATIONS : debilita
+> **Diagrama Entidad–Relación** — [descargar PDF](Diagramas/08-01-Modelo-ER.pdf)
 
-    DIAGRAMS {
-        int id PK
-        varchar title
-        varchar risk_name
-        varchar top_event
-        text description
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    CAUSES {
-        int id PK
-        int diagram_id FK
-        varchar label
-        int position
-        timestamp created_at
-    }
-
-    PREVENTIVE_CONTROLS {
-        int id PK
-        int cause_id FK
-        varchar label
-        int position
-        timestamp created_at
-    }
-
-    CONSEQUENCES {
-        int id PK
-        int diagram_id FK
-        varchar label
-        int position
-        timestamp created_at
-    }
-
-    MITIGATION_CONTROLS {
-        int id PK
-        int consequence_id FK
-        varchar label
-        int position
-        timestamp created_at
-    }
-
-    RISK_EVALUATIONS {
-        int id PK
-        int diagram_id FK
-        varchar evaluation_type
-        int probability
-        int severity
-        varchar tolerability
-        text notes
-        timestamp created_at
-    }
-
-    CONTROL_ESCALATIONS {
-        int id PK
-        int control_id FK
-        varchar label
-        int position
-        timestamp created_at
-    }
-
-    MITIGATION_ESCALATIONS {
-        int id PK
-        int mitigation_id FK
-        varchar label
-        int position
-        timestamp created_at
-    }
-```
+![Diagrama Entidad–Relación](Diagramas/08-01-Modelo-ER.png)
 
 ## 8.2 Diccionario de Datos
 

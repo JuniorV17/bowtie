@@ -6,208 +6,21 @@ El sistema Bowtie no implementa un ORM, sino que opera directamente sobre
 PostgreSQL. Sin embargo, el modelo conceptual se expresa mediante clases
 que reflejan las entidades de negocio y sus relaciones.
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-classDiagram
-    direction LR
+> **Diagrama de Clases — Modelo de Dominio** — [descargar PDF](Diagramas/07-01-Clases-Dominio.pdf)
 
-    class Diagram {
-        +int id
-        +string title
-        +string riskName
-        +string topEvent
-        +string description
-        +datetime createdAt
-        +datetime updatedAt
-    }
-
-    class Cause {
-        +int id
-        +int diagramId
-        +string label
-        +int position
-    }
-
-    class PreventiveControl {
-        +int id
-        +int causeId
-        +string label
-        +int position
-    }
-
-    class Consequence {
-        +int id
-        +int diagramId
-        +string label
-        +int position
-    }
-
-    class Mitigation {
-        +int id
-        +int consequenceId
-        +string label
-        +int position
-    }
-
-    class ControlEscalation {
-        +int id
-        +int controlId
-        +string label
-        +int position
-    }
-
-    class MitigationEscalation {
-        +int id
-        +int mitigationId
-        +string label
-        +int position
-    }
-
-    class RiskEvaluation {
-        +int id
-        +int diagramId
-        +string evaluationType
-        +int probability
-        +int severity
-        +string tolerability
-        +string notes
-        +datetime createdAt
-    }
-
-    class TolerabilityMatrix {
-        <<servicio>>
-        +calculate(probability, severity) string
-    }
-
-    Diagram "1" *-- "0..*" Cause
-    Diagram "1" *-- "0..*" Consequence
-    Diagram "1" *-- "0..*" RiskEvaluation
-    Cause "1" *-- "0..*" PreventiveControl
-    Consequence "1" *-- "0..*" Mitigation
-    PreventiveControl "1" *-- "0..*" ControlEscalation
-    Mitigation "1" *-- "0..*" MitigationEscalation
-    RiskEvaluation ..> TolerabilityMatrix : usa
-```
+![Diagrama de Clases — Modelo de Dominio](Diagramas/07-01-Clases-Dominio.png)
 
 ## 7.2 Diagrama de Clases del Backend
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-classDiagram
-    direction TB
+> **Diagrama de Clases — Backend** — [descargar PDF](Diagramas/07-02-Clases-Backend.pdf)
 
-    class Server {
-        +Express app
-        +int PORT
-        +start()
-    }
-
-    class DiagramRouter {
-        <<express.Router>>
-        +GET /
-        +GET /matrix
-        +GET /:id
-        +POST /
-        +PUT /:id
-        +DELETE /:id
-        +POST /:diagramId/evaluations
-        +GET /:diagramId/evaluations
-    }
-
-    class DiagramController {
-        +getAllDiagrams(req,res)
-        +getDiagramById(req,res)
-        +createDiagram(req,res)
-        +updateDiagram(req,res)
-        +deleteDiagram(req,res)
-        +createRiskEvaluation(req,res)
-        +getRiskEvaluations(req,res)
-        +updateRiskEvaluation(req,res)
-        +deleteRiskEvaluation(req,res)
-        +createControlEscalation(req,res)
-        +createMitigationEscalation(req,res)
-        +getTolerabilityMatrix(req,res)
-        -calculateTolerability(p,s)
-    }
-
-    class Pool {
-        <<pg>>
-        +connect()
-        +query(sql,params)
-    }
-
-    Server --> DiagramRouter
-    DiagramRouter --> DiagramController
-    DiagramController --> Pool
-```
+![Diagrama de Clases — Backend](Diagramas/07-02-Clases-Backend.png)
 
 ## 7.3 Diagrama de Clases del Frontend
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-classDiagram
-    direction TB
+> **Diagrama de Clases — Frontend** — [descargar PDF](Diagramas/07-03-Clases-Frontend.pdf)
 
-    class App {
-        +render()
-    }
-
-    class Dashboard {
-        -diagrams: Diagram[]
-        +loadDiagrams()
-        +deleteDiagram(id)
-    }
-
-    class WizardContainer {
-        -currentStep: int
-        -formData: object
-        +next()
-        +prev()
-        +save()
-    }
-
-    class Step1Event
-    class Step2Causes
-    class Step3Controls
-    class Step4Consequences
-    class Step5Mitigations
-    class RiskEvaluation
-    class EscalationModal
-
-    class DiagramView {
-        -diagram: Diagram
-        +exportPDF()
-        +exportSVG()
-    }
-
-    class BowtieDiagram {
-        -nodes: Node[]
-        -edges: Edge[]
-        +render()
-    }
-
-    class ApiService {
-        +diagramsApi
-        +evaluationsApi
-        +controlEscalationsApi
-        +mitigationEscalationsApi
-    }
-
-    App --> Dashboard
-    App --> WizardContainer
-    App --> DiagramView
-    WizardContainer --> Step1Event
-    WizardContainer --> Step2Causes
-    WizardContainer --> Step3Controls
-    WizardContainer --> Step4Consequences
-    WizardContainer --> Step5Mitigations
-    WizardContainer --> RiskEvaluation
-    WizardContainer --> EscalationModal
-    DiagramView --> BowtieDiagram
-    Dashboard ..> ApiService
-    WizardContainer ..> ApiService
-    DiagramView ..> ApiService
-```
+![Diagrama de Clases — Frontend](Diagramas/07-03-Clases-Frontend.png)
 
 ## 7.4 Reglas de Negocio Encapsuladas
 

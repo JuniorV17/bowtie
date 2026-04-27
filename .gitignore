@@ -42,3 +42,6 @@ desktop.ini
 
 # Herramientas locales no relacionadas con el proyecto
 .claude/
+
+# Artefactos temporales de generación de diagramas
+.tmp-diagrams/

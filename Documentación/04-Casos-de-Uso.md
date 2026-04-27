@@ -10,44 +10,9 @@
 
 ## 4.2 Diagrama de Casos de Uso
 
-```mermaid
-%%{init: {'theme':'neutral', 'themeVariables': {'primaryColor':'#ffffff','primaryTextColor':'#000000','primaryBorderColor':'#000000','lineColor':'#000000'}}}%%
-flowchart LR
-    subgraph SISTEMA["SISTEMA BOWTIE"]
-        CU01(("CU-01<br/>Crear diagrama"))
-        CU02(("CU-02<br/>Listar diagramas"))
-        CU03(("CU-03<br/>Visualizar diagrama"))
-        CU04(("CU-04<br/>Editar diagrama"))
-        CU05(("CU-05<br/>Eliminar diagrama"))
-        CU06(("CU-06<br/>Evaluar riesgo"))
-        CU07(("CU-07<br/>Gestionar escalamiento"))
-        CU08(("CU-08<br/>Exportar diagrama"))
-        CU09(("CU-09<br/>Verificar salud"))
-    end
+> **Diagrama de Casos de Uso** — [descargar PDF](Diagramas/04-01-Casos-de-Uso.pdf)
 
-    A["Analista de Riesgos"]
-    DB["PostgreSQL"]
-    RW["Railway"]
-
-    A --- CU01
-    A --- CU02
-    A --- CU03
-    A --- CU04
-    A --- CU05
-    A --- CU06
-    A --- CU07
-    A --- CU08
-
-    CU01 -.persiste.-> DB
-    CU02 -.consulta.-> DB
-    CU03 -.consulta.-> DB
-    CU04 -.actualiza.-> DB
-    CU05 -.elimina.-> DB
-    CU06 -.persiste.-> DB
-    CU07 -.persiste.-> DB
-
-    RW --- CU09
-```
+![Diagrama de Casos de Uso](Diagramas/04-01-Casos-de-Uso.png)
 
 ## 4.3 Especificaciones de los Casos de Uso
 
