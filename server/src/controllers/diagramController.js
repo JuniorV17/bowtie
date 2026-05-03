@@ -1,20 +1,16 @@
 // server/src/controllers/diagramController.js
 import pool from '../db/connection.js';
-
-// Matriz de tolerabilidad SMS 5x5
-// Filas: Probabilidad (1-5), Columnas: Gravedad (1-5)
-const TOLERABILITY_MATRIX = {
-  // [probabilidad][gravedad] = tolerabilidad
-  5: { 1: 'Tolerable', 2: 'Intolerable', 3: 'Intolerable', 4: 'Inaceptable', 5: 'Inaceptable' },
-  4: { 1: 'Aceptable', 2: 'Tolerable', 3: 'Intolerable', 4: 'Intolerable', 5: 'Inaceptable' },
-  3: { 1: 'Aceptable', 2: 'Tolerable', 3: 'Tolerable', 4: 'Intolerable', 5: 'Intolerable' },
-  2: { 1: 'Aceptable', 2: 'Aceptable', 3: 'Tolerable', 4: 'Tolerable', 5: 'Intolerable' },
-  1: { 1: 'Aceptable', 2: 'Aceptable', 3: 'Aceptable', 4: 'Tolerable', 5: 'Tolerable' },
-};
-
-function calculateTolerability(probability, severity) {
-  return TOLERABILITY_MATRIX[probability]?.[severity] || 'Desconocido';
-}
+import {
+  RISK_INDEX_MATRIX,
+  PROBABILITY_LEVELS,
+  SEVERITY_LEVELS,
+  TOLERABILITY_COLORS,
+  RISK_ACTIONS,
+  calculateTolerability,
+  calculateRiskIndex,
+  isValidProbability,
+  isValidSeverity,
+} from '../lib/tolerability.js';
 
 // GET all diagrams (summary)
 export async function getAllDiagrams(req, res) {
@@ -379,15 +375,15 @@ export async function createRiskEvaluation(req, res) {
     if (!evaluationType || !['before', 'after'].includes(evaluationType)) {
       return res.status(400).json({ error: 'evaluationType must be "before" or "after"' });
     }
-    if (!probability || probability < 1 || probability > 5) {
-      return res.status(400).json({ error: 'probability must be between 1 and 5' });
+    if (!isValidProbability(probability)) {
+      return res.status(400).json({ error: 'probability debe ser un entero entre 1 y 5' });
     }
-    if (!severity || severity < 1 || severity > 5) {
-      return res.status(400).json({ error: 'severity must be between 1 and 5' });
+    if (!isValidSeverity(severity)) {
+      return res.status(400).json({ error: 'severity debe ser una letra entre A y E' });
     }
 
-    // Calculate tolerability
     const tolerability = calculateTolerability(probability, severity);
+    const riskIndex = calculateRiskIndex(probability, severity);
 
     const result = await pool.query(`
       INSERT INTO risk_evaluations (diagram_id, evaluation_type, probability, severity, tolerability, notes)
@@ -395,10 +391,9 @@ export async function createRiskEvaluation(req, res) {
       RETURNING *
     `, [diagramId, evaluationType, probability, severity, tolerability, notes || '']);
 
-    // Update diagram's updated_at
     await pool.query('UPDATE diagrams SET updated_at = NOW() WHERE id = $1', [diagramId]);
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json({ ...result.rows[0], risk_index: riskIndex });
   } catch (error) {
     console.error('Error creating risk evaluation:', error);
     if (error.code === '42P01') {
@@ -437,15 +432,15 @@ export async function updateRiskEvaluation(req, res) {
   const { probability, severity, notes } = req.body;
 
   try {
-    if (!probability || probability < 1 || probability > 5) {
-      return res.status(400).json({ error: 'probability must be between 1 and 5' });
+    if (!isValidProbability(probability)) {
+      return res.status(400).json({ error: 'probability debe ser un entero entre 1 y 5' });
     }
-    if (!severity || severity < 1 || severity > 5) {
-      return res.status(400).json({ error: 'severity must be between 1 and 5' });
+    if (!isValidSeverity(severity)) {
+      return res.status(400).json({ error: 'severity debe ser una letra entre A y E' });
     }
 
-    // Calculate tolerability
     const tolerability = calculateTolerability(probability, severity);
+    const riskIndex = calculateRiskIndex(probability, severity);
 
     const result = await pool.query(`
       UPDATE risk_evaluations
@@ -458,7 +453,7 @@ export async function updateRiskEvaluation(req, res) {
       return res.status(404).json({ error: 'Risk evaluation not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json({ ...result.rows[0], risk_index: riskIndex });
   } catch (error) {
     console.error('Error updating risk evaluation:', error);
     if (error.code === '42P01') {
@@ -598,33 +593,11 @@ export async function deleteMitigationEscalation(req, res) {
 
 // GET tolerability matrix info
 export function getTolerabilityMatrix(req, res) {
-  const probabilityLevels = [
-    { level: 1, name: 'Improbable', description: 'Muy improbable que ocurra' },
-    { level: 2, name: 'Remoto', description: 'Poco probable' },
-    { level: 3, name: 'Ocasional', description: 'Puede ocurrir ocasionalmente' },
-    { level: 4, name: 'Probable', description: 'Probablemente ocurrirá' },
-    { level: 5, name: 'Frecuente', description: 'Ocurre con frecuencia' },
-  ];
-
-  const severityLevels = [
-    { level: 1, name: 'Insignificante', description: 'Sin impacto significativo' },
-    { level: 2, name: 'Menor', description: 'Impacto menor' },
-    { level: 3, name: 'Mayor', description: 'Impacto considerable' },
-    { level: 4, name: 'Peligroso', description: 'Impacto severo' },
-    { level: 5, name: 'Catastrófico', description: 'Impacto catastrófico' },
-  ];
-
-  const tolerabilityColors = {
-    'Aceptable': '#22C55E',
-    'Tolerable': '#EAB308',
-    'Intolerable': '#F97316',
-    'Inaceptable': '#EF4444',
-  };
-
   res.json({
-    matrix: TOLERABILITY_MATRIX,
-    probabilityLevels,
-    severityLevels,
-    tolerabilityColors,
+    matrix: RISK_INDEX_MATRIX,
+    probabilityLevels: PROBABILITY_LEVELS,
+    severityLevels: SEVERITY_LEVELS,
+    tolerabilityColors: TOLERABILITY_COLORS,
+    riskActions: RISK_ACTIONS,
   });
 }

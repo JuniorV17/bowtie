@@ -10,7 +10,7 @@
     "install:all": "npm install && npm --prefix server install && npm --prefix client install",
     "build": "npm --prefix client install && npm --prefix client run build && npm --prefix server install",
     "start": "npm --prefix server start",
-    "docs:diagrams": "node scripts/build-diagrams.mjs"
+    "test": "npm --prefix server test"
   },
   "engines": {
     "node": ">=18.0.0"

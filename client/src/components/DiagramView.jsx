@@ -6,12 +6,14 @@ import BowtieDiagram from "./BowtieDiagram";
 import RiskEvaluation from "./wizard/RiskEvaluation";
 import EscalationModal from "./wizard/EscalationModal";
 
+// Modelo SMS / OACI: 3 categorías de tolerabilidad con paleta diciente.
 const TOLERABILITY_COLORS = {
-  Aceptable: "#22C55E",
-  Tolerable: "#EAB308",
-  Intolerable: "#F97316",
-  Inaceptable: "#EF4444",
+  Aceptable:   "#22C55E", // verde
+  Tolerable:   "#F97316", // naranja
+  Intolerable: "#DC2626", // rojo
 };
+
+const riskIndexOf = (e) => (e && e.probability && e.severity ? `${e.probability}${e.severity}` : "");
 
 const DiagramView = () => {
   const [diagram, setDiagram] = useState(null);
@@ -440,15 +442,27 @@ const DiagramView = () => {
               </div>
               {beforeEval ? (
                 <>
-                  <div style={{
-                    fontSize: "20px",
-                    fontWeight: "700",
-                    color: TOLERABILITY_COLORS[beforeEval.tolerability],
-                  }}>
-                    {beforeEval.tolerability}
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+                    <span style={{
+                      fontSize: "26px",
+                      fontWeight: "800",
+                      color: TOLERABILITY_COLORS[beforeEval.tolerability],
+                      lineHeight: 1,
+                    }}>
+                      {riskIndexOf(beforeEval)}
+                    </span>
+                    <span style={{
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      color: TOLERABILITY_COLORS[beforeEval.tolerability],
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}>
+                      {beforeEval.tolerability}
+                    </span>
                   </div>
-                  <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "2px" }}>
-                    P:{beforeEval.probability} | G:{beforeEval.severity}
+                  <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>
+                    Prob. {beforeEval.probability} · Grav. {beforeEval.severity}
                   </div>
                 </>
               ) : (
@@ -485,15 +499,27 @@ const DiagramView = () => {
               </div>
               {afterEval ? (
                 <>
-                  <div style={{
-                    fontSize: "20px",
-                    fontWeight: "700",
-                    color: TOLERABILITY_COLORS[afterEval.tolerability],
-                  }}>
-                    {afterEval.tolerability}
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+                    <span style={{
+                      fontSize: "26px",
+                      fontWeight: "800",
+                      color: TOLERABILITY_COLORS[afterEval.tolerability],
+                      lineHeight: 1,
+                    }}>
+                      {riskIndexOf(afterEval)}
+                    </span>
+                    <span style={{
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      color: TOLERABILITY_COLORS[afterEval.tolerability],
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}>
+                      {afterEval.tolerability}
+                    </span>
                   </div>
-                  <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "2px" }}>
-                    P:{afterEval.probability} | G:{afterEval.severity}
+                  <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>
+                    Prob. {afterEval.probability} · Grav. {afterEval.severity}
                   </div>
                 </>
               ) : (

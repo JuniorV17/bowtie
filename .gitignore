@@ -40,8 +40,15 @@ Thumbs.db
 nul
 desktop.ini
 
-# Herramientas locales no relacionadas con el proyecto
+# Configuración local de herramientas externas
 .claude/
 
-# Artefactos temporales de generación de diagramas
+# Artefactos temporales
 .tmp-diagrams/
+.tmp-test-output.txt
+
+# Archivos SQL ad-hoc (dumps, backups locales). El esquema versionado del
+# backend (server/sql/*.sql) sí se publica.
+*.sql
+!server/sql/*.sql
+database/

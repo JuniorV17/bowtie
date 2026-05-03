@@ -667,10 +667,9 @@ const BowtieDiagram = ({ data, apiData }) => {
 
             // Color según tolerabilidad
             const colors = {
-              'Aceptable': { bg: '#DCFCE7', border: '#22C55E', text: '#166534' },
-              'Tolerable': { bg: '#FEF9C3', border: '#EAB308', text: '#854D0E' },
-              'Intolerable': { bg: '#FFEDD5', border: '#F97316', text: '#9A3412' },
-              'Inaceptable': { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' },
+              'Aceptable':   { bg: '#DCFCE7', border: '#16A34A', text: '#14532D' },
+              'Tolerable':   { bg: '#FFEDD5', border: '#EA580C', text: '#7C2D12' },
+              'Intolerable': { bg: '#FEE2E2', border: '#DC2626', text: '#7F1D1D' },
             };
             const c = colors[beforeEval.tolerability] || colors['Tolerable'];
 
@@ -685,14 +684,18 @@ const BowtieDiagram = ({ data, apiData }) => {
             ctx.fillStyle = '#3B82F6';
             ctx.fillText('⚠️ RIESGO INICIAL', boxX + 10, boxY + 18);
 
-            ctx.font = 'bold 20px Arial';
+            ctx.font = 'bold 26px Arial';
             ctx.fillStyle = c.text;
-            ctx.fillText(beforeEval.tolerability, boxX + 10, boxY + 45);
+            ctx.fillText(`${beforeEval.probability}${beforeEval.severity}`, boxX + 10, boxY + 48);
+
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = c.text;
+            ctx.fillText(beforeEval.tolerability.toUpperCase(), boxX + 70, boxY + 45);
 
             ctx.font = '11px Arial';
             ctx.fillStyle = '#6B7280';
-            ctx.fillText(`Probabilidad: ${beforeEval.probability}`, boxX + 10, boxY + 65);
-            ctx.fillText(`Gravedad: ${beforeEval.severity}`, boxX + 10, boxY + 80);
+            ctx.fillText(`Probabilidad: ${beforeEval.probability}`, boxX + 10, boxY + 68);
+            ctx.fillText(`Gravedad: ${beforeEval.severity}`, boxX + 10, boxY + 83);
           }
 
           // Evaluación Después
@@ -703,10 +706,9 @@ const BowtieDiagram = ({ data, apiData }) => {
             const boxH = 100;
 
             const colors = {
-              'Aceptable': { bg: '#DCFCE7', border: '#22C55E', text: '#166534' },
-              'Tolerable': { bg: '#FEF9C3', border: '#EAB308', text: '#854D0E' },
-              'Intolerable': { bg: '#FFEDD5', border: '#F97316', text: '#9A3412' },
-              'Inaceptable': { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' },
+              'Aceptable':   { bg: '#DCFCE7', border: '#16A34A', text: '#14532D' },
+              'Tolerable':   { bg: '#FFEDD5', border: '#EA580C', text: '#7C2D12' },
+              'Intolerable': { bg: '#FEE2E2', border: '#DC2626', text: '#7F1D1D' },
             };
             const c = colors[afterEval.tolerability] || colors['Tolerable'];
 
@@ -721,14 +723,18 @@ const BowtieDiagram = ({ data, apiData }) => {
             ctx.fillStyle = '#059669';
             ctx.fillText('🛡️ RIESGO RESIDUAL', boxX + 10, boxY + 18);
 
-            ctx.font = 'bold 20px Arial';
+            ctx.font = 'bold 26px Arial';
             ctx.fillStyle = c.text;
-            ctx.fillText(afterEval.tolerability, boxX + 10, boxY + 45);
+            ctx.fillText(`${afterEval.probability}${afterEval.severity}`, boxX + 10, boxY + 48);
+
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = c.text;
+            ctx.fillText(afterEval.tolerability.toUpperCase(), boxX + 70, boxY + 45);
 
             ctx.font = '11px Arial';
             ctx.fillStyle = '#6B7280';
-            ctx.fillText(`Probabilidad: ${afterEval.probability}`, boxX + 10, boxY + 65);
-            ctx.fillText(`Gravedad: ${afterEval.severity}`, boxX + 10, boxY + 80);
+            ctx.fillText(`Probabilidad: ${afterEval.probability}`, boxX + 10, boxY + 68);
+            ctx.fillText(`Gravedad: ${afterEval.severity}`, boxX + 10, boxY + 83);
           }
         }
 

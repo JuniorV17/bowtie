@@ -9,6 +9,20 @@ import Step4Consequences from "./Step4Consequences";
 import Step5Mitigations from "./Step5Mitigations";
 import RiskEvaluation from "./RiskEvaluation";
 
+// Matriz SMS / OACI — espejo del backend para mostrar la categoría en el indicador.
+const RISK_INDEX_MATRIX = {
+  5: { A: "Intolerable", B: "Intolerable", C: "Intolerable", D: "Tolerable",  E: "Tolerable"  },
+  4: { A: "Intolerable", B: "Intolerable", C: "Tolerable",   D: "Tolerable",  E: "Tolerable"  },
+  3: { A: "Intolerable", B: "Tolerable",   C: "Tolerable",   D: "Tolerable",  E: "Aceptable"  },
+  2: { A: "Tolerable",   B: "Tolerable",   C: "Tolerable",   D: "Aceptable",  E: "Aceptable"  },
+  1: { A: "Tolerable",   B: "Aceptable",   C: "Aceptable",   D: "Aceptable",  E: "Aceptable"  },
+};
+const TOLERABILITY_PALETTE = {
+  Intolerable: { bg: "#FEE2E2", border: "#DC2626", text: "#7F1D1D" },
+  Tolerable:   { bg: "#FFEDD5", border: "#EA580C", text: "#7C2D12" },
+  Aceptable:   { bg: "#DCFCE7", border: "#16A34A", text: "#14532D" },
+};
+
 const STEPS = [
   { id: 1, name: "Evento", description: "Información del riesgo" },
   { id: 2, name: "Causas", description: "Causas potenciales" },
@@ -467,25 +481,40 @@ const WizardContainer = () => {
         </h1>
 
         {/* Before evaluation indicator */}
-        {pendingBeforeEval && (
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "12px 16px",
-            backgroundColor: "#FEF3C7",
-            border: "1px solid #F59E0B",
-            borderRadius: "10px",
-            marginBottom: "24px",
-            fontSize: "14px",
-            color: "#92400E",
-          }}>
-            <span>⚠️</span>
-            <span>
-              <strong>Evaluación inicial registrada:</strong> Probabilidad {pendingBeforeEval.probability}, Gravedad {pendingBeforeEval.severity}
-            </span>
-          </div>
-        )}
+        {pendingBeforeEval && (() => {
+          const idx = `${pendingBeforeEval.probability}${pendingBeforeEval.severity}`;
+          const cat = RISK_INDEX_MATRIX[pendingBeforeEval.probability]?.[pendingBeforeEval.severity];
+          const c = TOLERABILITY_PALETTE[cat] || TOLERABILITY_PALETTE.Tolerable;
+          return (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "14px 18px",
+              backgroundColor: c.bg,
+              border: `1.5px solid ${c.border}`,
+              borderRadius: "10px",
+              marginBottom: "24px",
+              fontSize: "14px",
+              color: c.text,
+            }}>
+              <span style={{ fontSize: "18px" }}>⚠️</span>
+              <span style={{
+                fontSize: "18px", fontWeight: "800", padding: "4px 10px",
+                borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.6)",
+                color: c.text, letterSpacing: "0.02em",
+              }}>{idx}</span>
+              <span style={{
+                fontSize: "12px", fontWeight: "700",
+                textTransform: "uppercase", letterSpacing: "0.05em",
+                color: c.text,
+              }}>{cat}</span>
+              <span style={{ flex: 1, fontSize: "13px", color: c.text }}>
+                <strong>Evaluación inicial registrada</strong> · Prob. {pendingBeforeEval.probability} · Grav. {pendingBeforeEval.severity}
+              </span>
+            </div>
+          );
+        })()}
 
         {/* Step indicators */}
         <div style={styles.stepsContainer}>
