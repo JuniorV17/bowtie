@@ -215,4 +215,4 @@ Variables de entorno relevantes:
 
 ## Autor
 
-**Junior Vallejo** — [@JuniorV17](https://github.com/JuniorV17)
+**Junior Valle** — [@JuniorV17](https://github.com/JuniorV17)
