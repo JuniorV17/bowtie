@@ -83,19 +83,21 @@ const THEME = {
   bg: "#FFFFFF",
 };
 
-// Componente de texto SVG con wrap automático
-const SvgText = React.memo(({ x, y, text, width, size, color, bold, maxLines = 3 }) => {
+// Calcula líneas de texto envueltas para un ancho dado
+const wrapLines = (text, width, size) => {
   const words = (text || "").split(" ");
   const charWidth = size * 0.55;
-  const maxChars = Math.floor(width / charWidth);
-
+  const maxChars = Math.max(1, Math.floor(width / charWidth));
   const lines = [];
   let currentLine = "";
 
   words.forEach(word => {
     if (word.length > maxChars) {
       if (currentLine) lines.push(currentLine);
-      lines.push(word.slice(0, maxChars - 1) + "…");
+      // Partir palabra muy larga en trozos
+      for (let i = 0; i < word.length; i += maxChars) {
+        lines.push(word.slice(i, i + maxChars));
+      }
       currentLine = "";
     } else if ((currentLine + " " + word).trim().length <= maxChars) {
       currentLine = (currentLine + " " + word).trim();
@@ -105,11 +107,17 @@ const SvgText = React.memo(({ x, y, text, width, size, color, bold, maxLines = 3
     }
   });
   if (currentLine) lines.push(currentLine);
+  return lines.length === 0 ? [""] : lines;
+};
+
+// Componente de texto SVG con wrap automático
+const SvgText = React.memo(({ x, y, text, width, size, color, bold, maxLines = 3 }) => {
+  const lines = wrapLines(text, width, size);
 
   const displayLines = lines.slice(0, maxLines);
   if (lines.length > maxLines) {
     const last = displayLines[maxLines - 1];
-    displayLines[maxLines - 1] = last.slice(0, -1) + "…";
+    displayLines[maxLines - 1] = last.slice(0, Math.max(1, last.length - 1)) + "…";
   }
 
   const lineHeight = size * 1.2;
@@ -146,6 +154,20 @@ const BowtieDiagram = ({ data, apiData }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [hoveredElement, setHoveredElement] = useState(null);
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [exportMode, setExportMode] = useState(false);
+  const [tooltip, setTooltip] = useState(null);
+
+  // Mostrar/ocultar tooltip personalizado siguiendo el cursor
+  const showTip = useCallback((text, e) => {
+    if (!containerRef.current || !text) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setTooltip({
+      text,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  }, []);
+  const hideTip = useCallback(() => setTooltip(null), []);
 
   // Animación de entrada
   useEffect(() => {
@@ -251,14 +273,42 @@ const BowtieDiagram = ({ data, apiData }) => {
     const hasEscalations = causes.some(c => c.controls.some(ctrl => ctrl.escalations?.length > 0)) ||
                           consequences.some(c => c.mitigations.some(m => m.escalations?.length > 0));
 
-    // DIMENSIONES MÁS GRANDES para usar más espacio horizontal
-    const baseNodeW = 200;      // Más ancho
-    const baseNodeH = 70;       // Más alto
-    const baseBarrierW = 110;   // Barreras más anchas
-    const baseBarrierH = 48;    // Barreras más altas
-    const centerR = 90;         // Centro más grande
-    const escalationW = 90;     // Ancho de nodo de escalamiento
-    const escalationH = 36;     // Alto de nodo de escalamiento
+    // DIMENSIONES base
+    const baseNodeW = 200;
+    const baseBarrierW = 110;
+    const centerR = 90;
+    const escalationW = 90;
+
+    // Constantes para estimar la altura por número de líneas
+    const NODE_FONT = 13;
+    const BARRIER_FONT = 11;
+    const ESC_FONT = 9;
+    const linesH = (lines, fs) => Math.max(1, lines) * fs * 1.2;
+    const padV = 18;          // padding vertical en nodos grandes
+    const padVBar = 14;       // padding vertical en barreras
+
+    // Calcular líneas reales por elemento
+    const causeLineCounts = causes.map(c => wrapLines(c.label || "", baseNodeW - 20, NODE_FONT).length);
+    const conseqLineCounts = consequences.map(c => wrapLines(c.label || "", baseNodeW - 20, NODE_FONT).length);
+    const ctrlLineCounts = causes.flatMap(c => c.controls.map(ctrl => wrapLines(ctrl.label || "", baseBarrierW - 14, BARRIER_FONT).length));
+    const mitLineCounts = consequences.flatMap(c => c.mitigations.map(m => wrapLines(m.label || "", baseBarrierW - 14, BARRIER_FONT).length));
+    const escLineCounts = [
+      ...causes.flatMap(c => c.controls.flatMap(ctrl => (ctrl.escalations || []).map(e => wrapLines(e.label || "", escalationW - 28, ESC_FONT).length))),
+      ...consequences.flatMap(c => c.mitigations.flatMap(m => (m.escalations || []).map(e => wrapLines(e.label || "", escalationW - 28, ESC_FONT).length))),
+    ];
+
+    // En modo export: las cajas crecen para acomodar TODO el texto.
+    // En modo display: tamaños compactos con truncamiento.
+    const displayCauseLines = 3, displayCtrlLines = 2, displayEscLines = 2;
+    const baseNodeH = exportMode
+      ? Math.max(70, ...[...causeLineCounts, ...conseqLineCounts, 1].map(n => linesH(n, NODE_FONT) + padV))
+      : 70;
+    const baseBarrierH = exportMode
+      ? Math.max(48, ...[...ctrlLineCounts, ...mitLineCounts, 1].map(n => linesH(n, BARRIER_FONT) + padVBar))
+      : 48;
+    const escalationH = exportMode
+      ? Math.max(36, ...[...escLineCounts, 1].map(n => linesH(n, ESC_FONT) + 12))
+      : 36;
 
     // Espaciado vertical por fila - más generoso
     const rowH = Math.max(baseNodeH + 50, (Math.max(maxCtrls, maxMits) * (baseBarrierH + 14)));
@@ -562,7 +612,15 @@ const BowtieDiagram = ({ data, apiData }) => {
       mitigationEscalations,
       lines
     };
-  }, [diagram]);
+  }, [diagram, exportMode]);
+
+  // Mantener una referencia fresca al layout para usarla tras toggling de exportMode
+  const layoutRef = useRef(null);
+  useEffect(() => { layoutRef.current = layout; }, [layout]);
+
+  // Esperar 2 frames para asegurar que React renderizó el nuevo layout en el DOM
+  const waitForRender = () =>
+    new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
   // Exportar PDF con centrado y notificación
   const exportPDF = useCallback(async () => {
@@ -571,7 +629,13 @@ const BowtieDiagram = ({ data, apiData }) => {
     setIsExporting(true);
     showToast('Generando PDF...', 'info');
 
-    const { W, H } = layout;
+    // Activar modo export: las cajas crecen para mostrar todo el texto
+    setExportMode(true);
+    await waitForRender();
+    await waitForRender();
+
+    const layoutForExport = layoutRef.current || layout;
+    const { W, H } = layoutForExport;
     const clone = svgRef.current.cloneNode(true);
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
 
@@ -589,8 +653,8 @@ const BowtieDiagram = ({ data, apiData }) => {
     const beforeEval = diagram.evaluations?.find(e => e.evaluation_type === 'before');
     const afterEval = diagram.evaluations?.find(e => e.evaluation_type === 'after');
     const allEscalations = [
-      ...layout.controlEscalations.map(e => ({ ...e, type: 'control' })),
-      ...layout.mitigationEscalations.map(e => ({ ...e, type: 'mitigation' }))
+      ...layoutForExport.controlEscalations.map(e => ({ ...e, type: 'control' })),
+      ...layoutForExport.mitigationEscalations.map(e => ({ ...e, type: 'mitigation' }))
     ];
     const hasEvaluations = beforeEval || afterEval;
     const hasEscalations = allEscalations.length > 0;
@@ -784,11 +848,13 @@ const BowtieDiagram = ({ data, apiData }) => {
       pdf.save(`diagrama-bowtie${diagram.title ? '-' + diagram.title.replace(/[^a-z0-9]/gi, '-').toLowerCase() : ''}.pdf`);
 
       setIsExporting(false);
+      setExportMode(false);
       showToast('PDF descargado exitosamente', 'success');
     };
 
     img.onerror = () => {
       setIsExporting(false);
+      setExportMode(false);
       showToast('Error al generar PDF', 'error');
     };
 
@@ -796,14 +862,19 @@ const BowtieDiagram = ({ data, apiData }) => {
   }, [layout, diagram, isExporting, showToast]);
 
   // Descargar SVG con centrado y notificación
-  const downloadSVG = useCallback(() => {
+  const downloadSVG = useCallback(async () => {
     if (!svgRef.current || isExporting) return;
 
     setIsExporting(true);
     showToast('Generando SVG...', 'info');
 
+    setExportMode(true);
+    await waitForRender();
+    await waitForRender();
+
     try {
-      const { W, H } = layout;
+      const layoutForExport = layoutRef.current || layout;
+      const { W, H } = layoutForExport;
       const margin = 40;
 
       // Crear SVG contenedor con margen
@@ -842,10 +913,12 @@ const BowtieDiagram = ({ data, apiData }) => {
 
       setTimeout(() => {
         setIsExporting(false);
+        setExportMode(false);
         showToast('SVG descargado exitosamente', 'success');
       }, 500);
     } catch (err) {
       setIsExporting(false);
+      setExportMode(false);
       showToast('Error al generar SVG', 'error');
     }
   }, [layout, isExporting, showToast]);
@@ -1080,6 +1153,7 @@ const BowtieDiagram = ({ data, apiData }) => {
       <div
         ref={containerRef}
         style={{
+          position: "relative",
           flex: 1,
           overflow: "auto",
           background: "linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)",
@@ -1217,8 +1291,15 @@ const BowtieDiagram = ({ data, apiData }) => {
               filter="url(#dropShadow)"
             >
               <circle cx={CX} cy={CY} r={centerR + 3} fill="rgba(180, 83, 9, 0.1)" />
-              <circle cx={CX} cy={CY} r={centerR} fill={THEME.centerBg} stroke={THEME.centerStroke} strokeWidth={4} />
-              <SvgText x={CX} y={CY} text={diagram.topEvent} width={centerR * 1.6} size={14} color={THEME.centerText} bold />
+              <circle
+                cx={CX} cy={CY} r={centerR}
+                fill={THEME.centerBg} stroke={THEME.centerStroke} strokeWidth={4}
+                onMouseEnter={(e) => showTip(diagram.topEvent, e)}
+                onMouseMove={(e) => showTip(diagram.topEvent, e)}
+                onMouseLeave={hideTip}
+                style={{ cursor: 'pointer' }}
+              />
+              <SvgText x={CX} y={CY} text={diagram.topEvent} width={centerR * 1.6} size={14} color={THEME.centerText} bold maxLines={exportMode ? 99 : 3} />
             </g>
 
             {/* Nodos de Causas con animación escalonada */}
@@ -1232,8 +1313,9 @@ const BowtieDiagram = ({ data, apiData }) => {
                   cursor: 'pointer'
                 }}
                 filter="url(#dropShadow)"
-                onMouseEnter={() => setHoveredElement(`cause-${c.id}`)}
-                onMouseLeave={() => setHoveredElement(null)}
+                onMouseEnter={(e) => { setHoveredElement(`cause-${c.id}`); showTip(c.label, e); }}
+                onMouseMove={(e) => showTip(c.label, e)}
+                onMouseLeave={() => { setHoveredElement(null); hideTip(); }}
               >
                 <rect
                   x={c.x - c.w / 2}
@@ -1246,7 +1328,7 @@ const BowtieDiagram = ({ data, apiData }) => {
                   strokeWidth={hoveredElement === `cause-${c.id}` ? 3.5 : 2.5}
                   style={{ transition: 'stroke-width 0.2s' }}
                 />
-                <SvgText x={c.x} y={c.y} text={c.label} width={c.w - 20} size={13} color={THEME.causeText} />
+                <SvgText x={c.x} y={c.y} text={c.label} width={c.w - 20} size={13} color={THEME.causeText} maxLines={exportMode ? 99 : 3} />
               </g>
             ))}
 
@@ -1261,8 +1343,9 @@ const BowtieDiagram = ({ data, apiData }) => {
                   cursor: 'pointer'
                 }}
                 filter="url(#dropShadow)"
-                onMouseEnter={() => setHoveredElement(`conseq-${c.id}`)}
-                onMouseLeave={() => setHoveredElement(null)}
+                onMouseEnter={(e) => { setHoveredElement(`conseq-${c.id}`); showTip(c.label, e); }}
+                onMouseMove={(e) => showTip(c.label, e)}
+                onMouseLeave={() => { setHoveredElement(null); hideTip(); }}
               >
                 <rect
                   x={c.x - c.w / 2}
@@ -1275,7 +1358,7 @@ const BowtieDiagram = ({ data, apiData }) => {
                   strokeWidth={hoveredElement === `conseq-${c.id}` ? 3.5 : 2.5}
                   style={{ transition: 'stroke-width 0.2s' }}
                 />
-                <SvgText x={c.x} y={c.y} text={c.label} width={c.w - 20} size={13} color={THEME.conseText} />
+                <SvgText x={c.x} y={c.y} text={c.label} width={c.w - 20} size={13} color={THEME.conseText} maxLines={exportMode ? 99 : 3} />
               </g>
             ))}
 
@@ -1290,8 +1373,9 @@ const BowtieDiagram = ({ data, apiData }) => {
                   transition: `all 0.3s ease ${i * 0.05}s`,
                   cursor: 'pointer'
                 }}
-                onMouseEnter={() => setHoveredElement(`ctrl-${c.id}-${i}`)}
-                onMouseLeave={() => setHoveredElement(null)}
+                onMouseEnter={(e) => { setHoveredElement(`ctrl-${c.id}-${i}`); showTip(c.label, e); }}
+                onMouseMove={(e) => showTip(c.label, e)}
+                onMouseLeave={() => { setHoveredElement(null); hideTip(); }}
               >
                 <rect
                   x={c.x - c.w / 2}
@@ -1304,7 +1388,7 @@ const BowtieDiagram = ({ data, apiData }) => {
                   strokeWidth={hoveredElement === `ctrl-${c.id}-${i}` ? 3 : 2}
                   style={{ transition: 'stroke-width 0.2s' }}
                 />
-                <SvgText x={c.x} y={c.y} text={c.label} width={c.w - 14} size={11} color={THEME.prevText} maxLines={2} />
+                <SvgText x={c.x} y={c.y} text={c.label} width={c.w - 14} size={11} color={THEME.prevText} maxLines={exportMode ? 99 : 2} />
               </g>
             ))}
 
@@ -1321,8 +1405,9 @@ const BowtieDiagram = ({ data, apiData }) => {
                     transition: `all 0.3s ease ${i * 0.05}s`,
                     cursor: 'pointer'
                   }}
-                  onMouseEnter={() => setHoveredElement(`mit-${m.id}-${i}`)}
-                  onMouseLeave={() => setHoveredElement(null)}
+                  onMouseEnter={(e) => { setHoveredElement(`mit-${m.id}-${i}`); showTip(m.label, e); }}
+                  onMouseMove={(e) => showTip(m.label, e)}
+                  onMouseLeave={() => { setHoveredElement(null); hideTip(); }}
                 >
                   <rect
                     x={m.x - m.w / 2}
@@ -1335,7 +1420,7 @@ const BowtieDiagram = ({ data, apiData }) => {
                     strokeWidth={hoveredElement === `mit-${m.id}-${i}` ? 3 : 2}
                     style={{ transition: 'stroke-width 0.2s' }}
                   />
-                  <SvgText x={m.x} y={m.y} text={m.label} width={m.w - 14} size={11} color={THEME.mitiText} maxLines={2} />
+                  <SvgText x={m.x} y={m.y} text={m.label} width={m.w - 14} size={11} color={THEME.mitiText} maxLines={exportMode ? 99 : 2} />
                 </g>
               );
             })}
@@ -1370,6 +1455,10 @@ const BowtieDiagram = ({ data, apiData }) => {
                   fill={THEME.escalationBg}
                   stroke={THEME.escalationStroke}
                   strokeWidth={2}
+                  onMouseEnter={(e) => showTip(esc.label, e)}
+                  onMouseMove={(e) => showTip(esc.label, e)}
+                  onMouseLeave={hideTip}
+                  style={{ cursor: 'pointer' }}
                 />
                 {/* Lightning icon */}
                 <text
@@ -1388,7 +1477,7 @@ const BowtieDiagram = ({ data, apiData }) => {
                   width={esc.w - 28}
                   size={9}
                   color={THEME.escalationText}
-                  maxLines={2}
+                  maxLines={exportMode ? 99 : 2}
                 />
               </g>
             ))}
@@ -1423,6 +1512,10 @@ const BowtieDiagram = ({ data, apiData }) => {
                   fill={THEME.escalationBg}
                   stroke={THEME.escalationStroke}
                   strokeWidth={2}
+                  onMouseEnter={(e) => showTip(esc.label, e)}
+                  onMouseMove={(e) => showTip(esc.label, e)}
+                  onMouseLeave={hideTip}
+                  style={{ cursor: 'pointer' }}
                 />
                 {/* Lightning icon */}
                 <text
@@ -1441,12 +1534,39 @@ const BowtieDiagram = ({ data, apiData }) => {
                   width={esc.w - 28}
                   size={9}
                   color={THEME.escalationText}
-                  maxLines={2}
+                  maxLines={exportMode ? 99 : 2}
                 />
               </g>
             ))}
           </svg>
         </div>
+
+        {/* Tooltip personalizado: muestra texto completo al hacer hover */}
+        {tooltip && (
+          <div
+            style={{
+              position: "absolute",
+              left: Math.min(tooltip.x + 16, (containerRef.current?.clientWidth || 1200) - 320),
+              top: tooltip.y + 16,
+              maxWidth: 320,
+              padding: "8px 12px",
+              background: "rgba(15, 23, 42, 0.95)",
+              color: "#FFFFFF",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 500,
+              fontFamily: FONT,
+              lineHeight: 1.4,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
+              pointerEvents: "none",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              zIndex: 100,
+            }}
+          >
+            {tooltip.text}
+          </div>
+        )}
       </div>
     </div>
   );

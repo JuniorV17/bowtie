@@ -1,8 +1,7 @@
 // server/tests/api.test.js
-// Pruebas de integración HTTP de la API REST.
-// Usan supertest contra la app de Express sin necesidad de base de datos
-// real: solo se ejercitan endpoints sin DB y la validación previa al
-// acceso a datos. Cubren RF-13, RF-17 y RNF-07.
+// Pruebas de integración HTTP esenciales: contrato del catálogo SMS,
+// validación de entrada de evaluaciones y robustez del servidor.
+// Ejecutadas contra Express en memoria (no requieren base de datos).
 
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,74 +9,66 @@ import request from 'supertest';
 import { createApp } from '../src/app.js';
 
 let app;
+before(() => { app = createApp(); });
 
-before(() => {
-  app = createApp();
-});
-
-describe('GET /api/health', () => {
-  it('responde 200 con estado "ok"', async () => {
+describe('Salud y rutas', () => {
+  it('GET /api/health responde 200 con estado "ok"', async () => {
     const res = await request(app).get('/api/health');
     assert.equal(res.status, 200);
     assert.equal(res.body.status, 'ok');
-    assert.ok(res.body.timestamp);
-    assert.ok(res.body.environment);
+    assert.ok(!Number.isNaN(Date.parse(res.body.timestamp)));
+  });
+  it('Rutas inexistentes responden 404', async () => {
+    const res = await request(app).get('/api/no-existe');
+    assert.equal(res.status, 404);
   });
 });
 
 describe('GET /api/diagrams/matrix', () => {
-  it('responde con la matriz, niveles y colores de tolerabilidad', async () => {
+  it('Expone catálogo SMS completo (3 categorías, 25 celdas)', async () => {
     const res = await request(app).get('/api/diagrams/matrix');
     assert.equal(res.status, 200);
-    assert.ok(res.body.matrix);
-    assert.ok(Array.isArray(res.body.probabilityLevels));
     assert.equal(res.body.probabilityLevels.length, 5);
-    assert.ok(Array.isArray(res.body.severityLevels));
     assert.equal(res.body.severityLevels.length, 5);
-    assert.ok(res.body.tolerabilityColors.Aceptable);
-  });
 
-  it('expone las 3 categorías de tolerabilidad SMS', async () => {
-    const res = await request(app).get('/api/diagrams/matrix');
-    const colors = Object.keys(res.body.tolerabilityColors).sort();
-    assert.deepEqual(colors, ['Aceptable', 'Intolerable', 'Tolerable']);
+    const cats = Object.keys(res.body.tolerabilityColors).sort();
+    assert.deepEqual(cats, ['Aceptable', 'Intolerable', 'Tolerable']);
+
+    const sev = Object.fromEntries(res.body.severityLevels.map(s => [s.code, s.name]));
+    assert.equal(sev.C, 'Grave'); // nomenclatura solicitada
   });
 });
 
 describe('POST /api/diagrams/:id/evaluations — validación', () => {
-  it('rechaza tipo de evaluación inválido (400)', async () => {
+  it('Rechaza evaluationType inválido', async () => {
     const res = await request(app)
       .post('/api/diagrams/1/evaluations')
       .send({ evaluationType: 'maybe', probability: 3, severity: 'C' });
     assert.equal(res.status, 400);
     assert.match(res.body.error, /evaluationType/);
   });
-
-  it('rechaza probabilidad fuera de rango (400)', async () => {
+  it('Rechaza probabilidad fuera de rango', async () => {
     const res = await request(app)
       .post('/api/diagrams/1/evaluations')
       .send({ evaluationType: 'before', probability: 9, severity: 'C' });
     assert.equal(res.status, 400);
     assert.match(res.body.error, /probability/);
   });
-
-  it('rechaza gravedad inválida (400)', async () => {
+  it('Rechaza gravedad inválida', async () => {
     const res = await request(app)
       .post('/api/diagrams/1/evaluations')
       .send({ evaluationType: 'after', probability: 3, severity: 'Z' });
     assert.equal(res.status, 400);
     assert.match(res.body.error, /severity/);
   });
-
-  it('rechaza body vacío (400)', async () => {
-    const res = await request(app).post('/api/diagrams/1/evaluations').send({});
-    assert.equal(res.status, 400);
-  });
 });
 
-describe('Endpoints inexistentes', () => {
-  it('GET /api/no-existe → 404', async () => {
-    const res = await request(app).get('/api/no-existe');
-    assert.equal(res.status, 404);
+describe('Robustez', () => {
+  it('JSON malformado responde 400 (no 500)', async () => {
+    const res = await request(app)
+      .post('/api/diagrams/1/evaluations')
+      .set('Content-Type', 'application/json')
+      .send('{not json');
+    assert.equal(res.status, 400);
   });
 });

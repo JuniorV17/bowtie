@@ -47,6 +47,13 @@ desktop.ini
 .tmp-diagrams/
 .tmp-test-output.txt
 
+# Carpetas de trabajo no relacionadas con el código fuente.
+# La documentación, las pruebas y el material de referencia se gestionan
+# fuera de este repositorio.
+Documentación/
+Pruebas/
+Riesgos/
+
 # Archivos SQL ad-hoc (dumps, backups locales). El esquema versionado del
 # backend (server/sql/*.sql) sí se publica.
 *.sql
