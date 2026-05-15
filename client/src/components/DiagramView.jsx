@@ -13,6 +13,12 @@ const TOLERABILITY_COLORS = {
   Intolerable: "#DC2626", // rojo
 };
 
+const RISK_ACTIONS = {
+  Intolerable: "Tomar medidas inmediatas para mitigar el riesgo o suspender la actividad. Realizar la mitigación de riesgos de seguridad operacional prioritaria para garantizar que haya controles preventivos o adicionales o mejorados para reducir el índice de riesgos al rango tolerable.",
+  Tolerable:   "Puede tolerarse sobre la base de la mitigación de riesgos de seguridad operacional. Puede necesitar una decisión de gestión para aceptar el riesgo.",
+  Aceptable:   "Aceptable tal cual. No se necesita una mitigación de riesgos posterior.",
+};
+
 const riskIndexOf = (e) => (e && e.probability && e.severity ? `${e.probability}${e.severity}` : "");
 
 const DiagramView = () => {
@@ -411,7 +417,7 @@ const DiagramView = () => {
               alignItems: "center",
               gap: "6px",
             }}>
-              📊 Evaluación SMS
+              📊 Matriz de Riesgo SMS
             </h3>
 
             {/* Before Evaluation Card */}
@@ -464,10 +470,24 @@ const DiagramView = () => {
                   <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>
                     Prob. {beforeEval.probability} · Grav. {beforeEval.severity}
                   </div>
+                  <div style={{
+                    fontSize: "11px",
+                    color: TOLERABILITY_COLORS[beforeEval.tolerability],
+                    marginTop: "8px",
+                    paddingTop: "8px",
+                    borderTop: `1px dashed ${TOLERABILITY_COLORS[beforeEval.tolerability]}40`,
+                    lineHeight: "1.45",
+                    fontWeight: 500,
+                  }}>
+                    <strong style={{ display: "block", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "3px", opacity: 0.85 }}>
+                      Medida recomendada
+                    </strong>
+                    {RISK_ACTIONS[beforeEval.tolerability]}
+                  </div>
                 </>
               ) : (
                 <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
-                  + Agregar evaluación
+                  + Llenar matriz de riesgo
                 </div>
               )}
             </div>
@@ -521,10 +541,24 @@ const DiagramView = () => {
                   <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>
                     Prob. {afterEval.probability} · Grav. {afterEval.severity}
                   </div>
+                  <div style={{
+                    fontSize: "11px",
+                    color: TOLERABILITY_COLORS[afterEval.tolerability],
+                    marginTop: "8px",
+                    paddingTop: "8px",
+                    borderTop: `1px dashed ${TOLERABILITY_COLORS[afterEval.tolerability]}40`,
+                    lineHeight: "1.45",
+                    fontWeight: 500,
+                  }}>
+                    <strong style={{ display: "block", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "3px", opacity: 0.85 }}>
+                      Medida recomendada
+                    </strong>
+                    {RISK_ACTIONS[afterEval.tolerability]}
+                  </div>
                 </>
               ) : (
                 <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
-                  + Agregar evaluación
+                  + Llenar matriz de riesgo
                 </div>
               )}
             </div>

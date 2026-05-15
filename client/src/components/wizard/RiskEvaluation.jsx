@@ -40,9 +40,9 @@ const TOLERABILITY_COLORS = {
 };
 
 const RISK_ACTIONS = {
-  Intolerable: "Tomar medidas inmediatas para mitigar el riesgo o suspender la actividad. La mitigación es prioritaria para reducir el índice al rango tolerable.",
-  Tolerable:   "Puede tolerarse sobre la base de la mitigación de riesgos. Puede necesitar una decisión de gestión para aceptar el riesgo.",
-  Aceptable:   "Aceptable tal cual. No se necesita una mitigación de riesgo posterior.",
+  Intolerable: "Tomar medidas inmediatas para mitigar el riesgo o suspender la actividad. Realizar la mitigación de riesgos de seguridad operacional prioritaria para garantizar que haya controles preventivos o adicionales o mejorados para reducir el índice de riesgos al rango tolerable.",
+  Tolerable:   "Puede tolerarse sobre la base de la mitigación de riesgos de seguridad operacional. Puede necesitar una decisión de gestión para aceptar el riesgo.",
+  Aceptable:   "Aceptable tal cual. No se necesita una mitigación de riesgos posterior.",
 };
 
 const styles = {
@@ -232,7 +232,7 @@ const RiskEvaluation = ({
       onClose();
     } catch (error) {
       console.error("Error saving evaluation:", error);
-      alert("Error al guardar la evaluación. Asegúrese de que la base de datos esté actualizada (npm run db:reset).");
+      alert("Error al guardar la matriz de riesgo. Asegúrese de que la base de datos esté actualizada (npm run db:reset).");
     } finally {
       setSaving(false);
     }
@@ -247,14 +247,14 @@ const RiskEvaluation = ({
 
   const isBefore = evaluationType === "before";
   const titleText = isEditing
-    ? (isBefore ? "Actualizar Evaluación Inicial" : "Actualizar Evaluación Residual")
-    : (isBefore ? "Evaluación de Riesgo Inicial" : "Evaluación de Riesgo Residual");
+    ? (isBefore ? "Actualizar Matriz de Riesgo Inicial" : "Actualizar Matriz de Riesgo Residual")
+    : (isBefore ? "Matriz de Riesgo Inicial" : "Matriz de Riesgo Residual");
   const subtitleText = isBefore
-    ? "Evalúe el nivel de riesgo ANTES de aplicar los controles preventivos y medidas de mitigación."
-    : "Evalúe el nivel de riesgo DESPUÉS de considerar los controles preventivos y medidas de mitigación implementados.";
+    ? "Determine el nivel de riesgo ANTES de aplicar los controles preventivos y medidas de mitigación."
+    : "Determine el nivel de riesgo DESPUÉS de considerar los controles preventivos y medidas de mitigación implementados.";
   const iconBg = isBefore ? "#FEF3C7" : "#D1FAE5";
   const iconEmoji = isBefore ? "⚠️" : "🛡️";
-  const saveButtonText = isEditing ? "Actualizar Evaluación" : "Guardar Evaluación";
+  const saveButtonText = isEditing ? "Actualizar Matriz" : "Guardar Matriz";
 
   return (
     <div style={styles.overlay}>
@@ -417,7 +417,7 @@ const RiskEvaluation = ({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Agregue notas o justificación de la evaluación..."
+            placeholder="Agregue notas o justificación de la matriz de riesgo..."
             style={styles.textarea}
           />
         </div>

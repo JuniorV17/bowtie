@@ -720,7 +720,7 @@ const BowtieDiagram = ({ data, apiData }) => {
           // Título de sección
           ctx.font = 'bold 14px Arial';
           ctx.fillStyle = '#374151';
-          ctx.fillText('📊 Evaluación de Riesgo SMS', evalX, infoY + 10);
+          ctx.fillText('📊 Matriz de Riesgo SMS', evalX, infoY + 10);
 
           // Evaluación Antes
           if (beforeEval) {

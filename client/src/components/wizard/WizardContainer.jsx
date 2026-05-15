@@ -510,7 +510,7 @@ const WizardContainer = () => {
                 color: c.text,
               }}>{cat}</span>
               <span style={{ flex: 1, fontSize: "13px", color: c.text }}>
-                <strong>Evaluación inicial registrada</strong> · Prob. {pendingBeforeEval.probability} · Grav. {pendingBeforeEval.severity}
+                <strong>Matriz de riesgo inicial registrada</strong> · Prob. {pendingBeforeEval.probability} · Grav. {pendingBeforeEval.severity}
               </span>
             </div>
           );
@@ -645,11 +645,11 @@ const WizardContainer = () => {
         <div style={styles.promptOverlay}>
           <div style={styles.promptModal}>
             <div style={styles.promptIcon}>⚠️</div>
-            <h3 style={styles.promptTitle}>Evaluación de Riesgo Inicial</h3>
+            <h3 style={styles.promptTitle}>Matriz de Riesgo Inicial</h3>
             <p style={styles.promptText}>
-              ¿Desea realizar una evaluación del riesgo inicial (antes de aplicar controles)?
+              ¿Desea llenar la matriz de riesgo inicial (antes de aplicar controles)?
               <br /><br />
-              Esta evaluación es opcional y puede realizarla después desde la vista del diagrama.
+              Este paso es opcional y puede realizarlo después desde la vista del diagrama.
             </p>
             <div style={styles.promptButtons}>
               <button
@@ -662,7 +662,7 @@ const WizardContainer = () => {
                 style={styles.promptButtonYes}
                 onClick={handleInitialPromptYes}
               >
-                Sí, evaluar ahora
+                Sí, llenar matriz de riesgo
               </button>
             </div>
           </div>
@@ -676,9 +676,9 @@ const WizardContainer = () => {
             <div style={{ ...styles.promptIcon, backgroundColor: "#D1FAE5" }}>🛡️</div>
             <h3 style={styles.promptTitle}>¡Diagrama guardado!</h3>
             <p style={styles.promptText}>
-              ¿Desea realizar una evaluación del riesgo residual (después de aplicar controles)?
+              ¿Desea llenar la matriz de riesgo residual (después de aplicar controles)?
               <br /><br />
-              Esta evaluación es opcional y puede realizarla después desde la vista del diagrama.
+              Este paso es opcional y puede realizarlo después desde la vista del diagrama.
             </p>
             <div style={styles.promptButtons}>
               <button
@@ -691,7 +691,7 @@ const WizardContainer = () => {
                 style={styles.promptButtonYes}
                 onClick={handleAfterPromptYes}
               >
-                Sí, evaluar ahora
+                Sí, llenar matriz de riesgo
               </button>
             </div>
           </div>

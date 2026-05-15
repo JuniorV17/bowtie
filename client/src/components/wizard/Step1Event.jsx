@@ -132,7 +132,10 @@ const Step1Event = ({ formData, updateFormData }) => {
           style={styles.input}
         />
         <p style={styles.hint}>
-          <span style={styles.infoIcon}>ℹ️</span> El peligro principal que se está analizando. Aparecerá en la parte superior del diagrama y en las tarjetas del Dashboard
+          <span style={styles.infoIcon}>ℹ️</span> <span>
+            <strong>Peligro (OACI):</strong> condición o circunstancia que puede provocar o contribuir a una solicitud inadecuada de servicio de aeronave o de equipo o estructura relacionada con la aeronáutica (Doc 9859 — SMM).
+            <br />Aparecerá en la parte superior del diagrama y en las tarjetas del Dashboard.
+          </span>
         </p>
       </div>
 
@@ -151,7 +154,10 @@ const Step1Event = ({ formData, updateFormData }) => {
           style={styles.input}
         />
         <p style={styles.hint}>
-          <span style={styles.infoIcon}>ℹ️</span> El evento central del diagrama Bowtie. Se mostrará en el centro del diagrama como un círculo
+          <span style={styles.infoIcon}>ℹ️</span> <span>
+            <strong>Riesgo de seguridad operacional (OACI):</strong> la probabilidad y la severidad previstas de las consecuencias o resultados de un peligro. El <strong>Top Event</strong> es la materialización del peligro: el evento central, no deseado, que se quiere evitar.
+            <br />Se mostrará en el centro del diagrama como un círculo.
+          </span>
         </p>
       </div>
 
